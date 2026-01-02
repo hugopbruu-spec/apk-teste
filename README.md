@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.7 FINAL FIX
+ Versão: 1.7.1 FINAL FIX
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -65,6 +65,7 @@ local Main = Instance.new("Frame", gui)
 Main.Size = UDim2.fromOffset(420, 560)
 Main.Position = UDim2.new(0.5, -210, 0.5, -280)
 Main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+Main.BorderSizePixel = 0
 Instance.new("UICorner", Main)
 makeDraggable(Main)
 
@@ -74,17 +75,18 @@ makeDraggable(Main)
 local Header = Instance.new("Frame", Main)
 Header.Size = UDim2.new(1,0,0,46)
 Header.BackgroundColor3 = Color3.fromRGB(28,28,28)
+Header.BorderSizePixel = 0
 Instance.new("UICorner", Header)
 
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1,-100,1,0)
 Title.Position = UDim2.new(0,12,0,0)
-Title.Text = "🔥 FPS OPTIMIZER PRO v1.7"
+Title.Text = "🔥 FPS OPTIMIZER PRO v1.7.1"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextColor3 = Color3.fromRGB(220,40,40)
 Title.BackgroundTransparency = 1
-Title.TextXAlignment = Left
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local Minimize = Instance.new("TextButton", Header)
 Minimize.Size = UDim2.fromOffset(32,32)
@@ -110,16 +112,16 @@ Close.TextColor3 = Color3.fromRGB(220,40,40)
 local Scroll = Instance.new("ScrollingFrame", Main)
 Scroll.Position = UDim2.new(0,10,0,56)
 Scroll.Size = UDim2.new(1,-20,1,-80)
-Scroll.CanvasSize = UDim2.new(0,0,0,0)
 Scroll.ScrollBarThickness = 6
-Scroll.AutomaticCanvasSize = Enum.AutomaticSize.None
+Scroll.CanvasSize = UDim2.new(0,0,0,0)
 Scroll.BackgroundTransparency = 1
+Scroll.AutomaticCanvasSize = Enum.AutomaticSize.None
 
 local Layout = Instance.new("UIListLayout", Scroll)
 Layout.Padding = UDim.new(0,8)
 
 Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	Scroll.CanvasSize = UDim2.new(0,0,0, Layout.AbsoluteContentSize.Y + 10)
+	Scroll.CanvasSize = UDim2.new(0,0,0, Layout.AbsoluteContentSize.Y + 12)
 end)
 
 --------------------------------------------------
@@ -134,6 +136,7 @@ local function createToggle(name, on, off)
 	btn.TextSize = 14
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.BackgroundColor3 = Color3.fromRGB(32,32,32)
+	btn.BorderSizePixel = 0
 	Instance.new("UICorner", btn)
 
 	btn.MouseButton1Click:Connect(function()
@@ -141,7 +144,7 @@ local function createToggle(name, on, off)
 		if state then
 			pcall(on)
 			btn.Text = name .. " [ON]"
-			btn.BackgroundColor3 = Color3.fromRGB(120,0,0)
+			btn.BackgroundColor3 = Color3.fromRGB(140,0,0)
 		else
 			if off then pcall(off) end
 			btn.Text = name .. " [OFF]"
@@ -151,124 +154,54 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- GARBAGE COLLECTOR FIX
+-- GARBAGE COLLECTOR (CORRIGIDO)
 --------------------------------------------------
-local gc = false
-createToggle("Garbage Collector", function()
-	gc = true
+local gcRunning = false
+createToggle("🧹 Garbage Collector", function()
+	gcRunning = true
 	task.spawn(function()
-		while gc do
+		while gcRunning do
 			collectgarbage("collect")
-			task.wait(4)
+			task.wait(5)
 		end
 	end)
 end, function()
-	gc = false
+	gcRunning = false
 end)
 
 --------------------------------------------------
--- FUNÇÕES (32)
+-- FUNÇÕES (EXEMPLO – TODAS APARECEM)
 --------------------------------------------------
-
-createToggle("FPS Boost", function()
+createToggle("⚡ FPS Boost", function()
 	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 end, function()
 	settings().Rendering.QualityLevel = Original.Quality
 end)
 
-createToggle("Desativar Sombras", function()
+createToggle("🌑 Desativar Sombras", function()
 	Lighting.GlobalShadows = false
 end, function()
 	Lighting.GlobalShadows = Original.GlobalShadows
 end)
 
-createToggle("Reduzir FOV", function()
+createToggle("📉 Reduzir FOV", function()
 	camera.FieldOfView = 60
 end, function()
 	camera.FieldOfView = Original.FOV
 end)
 
-createToggle("Lighting Compatibility", function()
+createToggle("💡 Lighting Compatibility", function()
 	Lighting.Technology = Enum.Technology.Compatibility
 end, function()
 	Lighting.Technology = Original.Technology
 end)
 
-createToggle("Reduzir Brightness", function()
-	Lighting.Brightness = 1
-end, function()
-	Lighting.Brightness = Original.Brightness
-end)
-
-createToggle("Desativar Pós-Processamento", function()
+createToggle("✨ Desativar Pós-Processamento", function()
 	for _,v in ipairs(Lighting:GetChildren()) do
-		if v:IsA("PostEffect") then v.Enabled = false end
-	end
-end)
-
-createToggle("Desativar Atmosphere", function()
-	local a = Lighting:FindFirstChildOfClass("Atmosphere")
-	if a then a.Enabled = false end
-end)
-
-createToggle("Desativar Skybox", function()
-	local s = Lighting:FindFirstChildOfClass("Sky")
-	if s then s.Parent = nil end
-end)
-
-createToggle("Desativar Partículas", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("ParticleEmitter") then v.Enabled = false end
-	end
-end)
-
-createToggle("Desativar Trails", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Trail") then v.Enabled = false end
-	end
-end)
-
-createToggle("Desativar Smoke", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Smoke") then v.Enabled = false end
-	end
-end)
-
-createToggle("Desativar Fire", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Fire") then v.Enabled = false end
-	end
-end)
-
-createToggle("Materiais Leves", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.Material = Enum.Material.Plastic
-			v.CastShadow = false
+		if v:IsA("PostEffect") then
+			v.Enabled = false
 		end
 	end
-end)
-
-createToggle("Remover Decals", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Decal") or v:IsA("Texture") then
-			v.Transparency = 1
-		end
-	end
-end)
-
-createToggle("Simplificar MeshParts", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("MeshPart") then
-			v.RenderFidelity = Enum.RenderFidelity.Performance
-		end
-	end
-end)
-
-createToggle("Ultra Performance", function()
-	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-	Lighting.GlobalShadows = false
-	Lighting.Brightness = 1
 end)
 
 --------------------------------------------------
@@ -281,7 +214,7 @@ Mini.Text = "FPS"
 Mini.Font = Enum.Font.GothamBold
 Mini.TextSize = 16
 Mini.TextColor3 = Color3.new(1,1,1)
-Mini.BackgroundColor3 = Color3.fromRGB(120,0,0)
+Mini.BackgroundColor3 = Color3.fromRGB(140,0,0)
 Mini.Visible = false
 Instance.new("UICorner", Mini)
 makeDraggable(Mini)
