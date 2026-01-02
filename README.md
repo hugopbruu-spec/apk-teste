@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.8 STAVEL
+ Versão: 1.9 STABLE EXTENDED
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -9,10 +9,46 @@ local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local Terrain = workspace:FindFirstChildOfClass("Terrain")
 
 local player = Players.LocalPlayer
 local guiParent = player:WaitForChild("PlayerGui")
 local camera = workspace.CurrentCamera
+
+--------------------------------------------------
+-- DRAG SYSTEM (PC + MOBILE)
+--------------------------------------------------
+local function makeDraggable(frame)
+	frame.Active = true
+	local drag, startPos, startInput
+
+	frame.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1
+		or i.UserInputType == Enum.UserInputType.Touch then
+			drag = true
+			startPos = frame.Position
+			startInput = i.Position
+		end
+	end)
+
+	UIS.InputChanged:Connect(function(i)
+		if drag and (i.UserInputType == Enum.UserInputType.MouseMovement
+		or i.UserInputType == Enum.UserInputType.Touch) then
+			local delta = i.Position - startInput
+			frame.Position = UDim2.new(
+				startPos.X.Scale, startPos.X.Offset + delta.X,
+				startPos.Y.Scale, startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	UIS.InputEnded:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1
+		or i.UserInputType == Enum.UserInputType.Touch then
+			drag = false
+		end
+	end)
+end
 
 --------------------------------------------------
 -- BACKUP ORIGINAL
@@ -27,114 +63,20 @@ local Original = {
 }
 
 --------------------------------------------------
--- GUI BASE
+-- GUI BASE (RESPONSIVO)
 --------------------------------------------------
 local gui = Instance.new("ScreenGui", guiParent)
 gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
 
 local Main = Instance.new("Frame", gui)
-Main.Size = UDim2.fromOffset(440, 580)
-Main.Position = UDim2.new(0.5,-220,0.5,-290)
+Main.AnchorPoint = Vector2.new(0.5,0.5)
+Main.Position = UDim2.fromScale(0.5,0.5)
+Main.Size = UDim2.fromOffset(440,580)
 Main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 Main.BorderSizePixel = 0
-Main.Active = true
 Instance.new("UICorner", Main)
-
---------------------------------------------------
--- DRAG PC + MOBILE
---------------------------------------------------
-do
-	local dragging, dragStart, startPos
-	Main.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = Main.Position
-		end
-	end)
-
-	UIS.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local delta = input.Position - dragStart
-			Main.Position = UDim2.new(
-				startPos.X.Scale, startPos.X.Offset + delta.X,
-				startPos.Y.Scale, startPos.Y.Offset + delta.Y
-			)
-		end
-	end)
-
-	UIS.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-end
-
---------------------------------------------------
--- RESIZE PC (CANTO)
---------------------------------------------------
-local Resize = Instance.new("Frame", Main)
-Resize.Size = UDim2.fromOffset(24,24)
-Resize.Position = UDim2.new(1,-24,1,-24)
-Resize.BackgroundTransparency = 1
-Resize.Active = true
-
-do
-	local resizing, startSize, startInput
-	Resize.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 then
-			resizing = true
-			startSize = Main.Size
-			startInput = i.Position
-		end
-	end)
-
-	UIS.InputChanged:Connect(function(i)
-		if resizing and i.UserInputType == Enum.UserInputType.MouseMovement then
-			local delta = i.Position - startInput
-			Main.Size = UDim2.fromOffset(
-				math.clamp(startSize.X.Offset + delta.X, 300, 900),
-				math.clamp(startSize.Y.Offset + delta.Y, 350, 900)
-			)
-		end
-	end)
-
-	UIS.InputEnded:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 then
-			resizing = false
-		end
-	end)
-end
-
---------------------------------------------------
--- RESIZE MOBILE (PINCH)
---------------------------------------------------
-do
-	local initialDistance, initialSize
-
-	UIS.TouchStarted:Connect(function(touches)
-		if #UIS:GetTouches() == 2 then
-			initialDistance = (touches[1].Position - touches[2].Position).Magnitude
-			initialSize = Main.Size
-		end
-	end)
-
-	UIS.TouchMoved:Connect(function(touches)
-		if #UIS:GetTouches() == 2 and initialDistance then
-			local newDistance = (touches[1].Position - touches[2].Position).Magnitude
-			local scale = newDistance / initialDistance
-
-			Main.Size = UDim2.fromOffset(
-				math.clamp(initialSize.X.Offset * scale, 300, 900),
-				math.clamp(initialSize.Y.Offset * scale, 350, 900)
-			)
-		end
-	end)
-
-	UIS.TouchEnded:Connect(function()
-		initialDistance = nil
-	end)
-end
+makeDraggable(Main)
 
 --------------------------------------------------
 -- HEADER
@@ -148,7 +90,7 @@ Instance.new("UICorner", Header)
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1,-100,1,0)
 Title.Position = UDim2.new(0,12,0,0)
-Title.Text = "🔥 FPS OPTIMIZER PRO v1.8"
+Title.Text = "🔥 FPS OPTIMIZER PRO v1.9"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextColor3 = Color3.fromRGB(200,40,40)
@@ -174,7 +116,7 @@ Close.BackgroundTransparency = 1
 Close.TextColor3 = Color3.fromRGB(200,40,40)
 
 --------------------------------------------------
--- SCROLL + TOGGLES (INALTERADOS)
+-- SCROLL
 --------------------------------------------------
 local Scroll = Instance.new("ScrollingFrame", Main)
 Scroll.Position = UDim2.new(0,10,0,58)
@@ -185,12 +127,13 @@ Scroll.BackgroundTransparency = 1
 
 local Layout = Instance.new("UIListLayout", Scroll)
 Layout.Padding = UDim.new(0,8)
+
 Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	Scroll.CanvasSize = UDim2.new(0,0,0, Layout.AbsoluteContentSize.Y + 12)
 end)
 
 --------------------------------------------------
--- TOGGLE SYSTEM (ORIGINAL)
+-- TOGGLE SYSTEM
 --------------------------------------------------
 local function createToggle(name, on, off)
 	local state = false
@@ -219,11 +162,8 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- 🔥 TODAS AS FUNÇÕES ORIGINAIS (SEM REMOÇÃO)
+-- FUNÇÕES ORIGINAIS (NÃO REMOVIDAS)
 --------------------------------------------------
--- (exatamente iguais às que você enviou)
-
--- Garbage Collector
 local gcRunning = false
 createToggle("🧹 Garbage Collector", function()
 	gcRunning = true
@@ -259,8 +199,118 @@ end,function()
 	Lighting.Technology = Original.Technology
 end)
 
--- +18 FUNÇÕES
--- (mantidas idênticas – não removidas)
+--------------------------------------------------
+-- TODAS AS FUNÇÕES DE OTIMIZAÇÃO (EXPANDIDAS)
+--------------------------------------------------
+createToggle("🚫 Pós-Processamento", function()
+	for _,v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("PostEffect") then v.Enabled = false end
+	end
+end)
+
+createToggle("☁️ Atmosphere OFF", function()
+	local a = Lighting:FindFirstChildOfClass("Atmosphere")
+	if a then a.Enabled = false end
+end)
+
+createToggle("🌌 Skybox OFF", function()
+	local s = Lighting:FindFirstChildOfClass("Sky")
+	if s then s.Parent = nil end
+end)
+
+createToggle("✨ Partículas OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("ParticleEmitter") then v.Enabled = false end
+	end
+end)
+
+createToggle("🔥 Fire OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Fire") then v.Enabled = false end
+	end
+end)
+
+createToggle("💨 Smoke OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Smoke") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧵 Trails OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Trail") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧱 Plastic Materials", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Material = Enum.Material.Plastic
+			v.CastShadow = false
+		end
+	end
+end)
+
+createToggle("🖼️ Decals OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Decal") or v:IsA("Texture") then
+			v.Transparency = 1
+		end
+	end
+end)
+
+createToggle("📦 Mesh Performance", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("MeshPart") then
+			v.RenderFidelity = Enum.RenderFidelity.Performance
+		end
+	end
+end)
+
+createToggle("🧠 Animations OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Animator") then v.Parent = nil end
+	end
+end)
+
+createToggle("🔇 Sounds OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Sound") then v.Volume = 0 end
+	end
+end)
+
+--------------------------------------------------
+-- FPS COUNTER (TEMPO REAL)
+--------------------------------------------------
+local fpsLabel = Instance.new("TextLabel", gui)
+fpsLabel.AnchorPoint = Vector2.new(1,0)
+fpsLabel.Position = UDim2.new(1,-10,0,10)
+fpsLabel.Size = UDim2.fromOffset(120,28)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextColor3 = Color3.fromRGB(255,80,80)
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextSize = 14
+fpsLabel.Text = "FPS: 0"
+fpsLabel.Visible = false
+
+local fpsOn, frames, last = false, 0, tick()
+RunService.RenderStepped:Connect(function()
+	if not fpsOn then return end
+	frames += 1
+	if tick() - last >= 1 then
+		fpsLabel.Text = "FPS: "..frames
+		frames = 0
+		last = tick()
+	end
+end)
+
+createToggle("📊 Mostrar FPS", function()
+	fpsOn = true
+	fpsLabel.Visible = true
+end,function()
+	fpsOn = false
+	fpsLabel.Visible = false
+end)
 
 --------------------------------------------------
 -- MINI BUTTON
@@ -275,6 +325,7 @@ Mini.TextColor3 = Color3.new(1,1,1)
 Mini.BackgroundColor3 = Color3.fromRGB(120,0,0)
 Mini.Visible = false
 Instance.new("UICorner", Mini)
+makeDraggable(Mini)
 
 Minimize.MouseButton1Click:Connect(function()
 	Main.Visible = false
