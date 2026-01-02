@@ -342,3 +342,4 @@ end)
 Close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
+ 
