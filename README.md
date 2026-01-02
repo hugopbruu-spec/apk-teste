@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.8 STAVEL
+ Versão: 1.8 STABEL
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -62,6 +62,37 @@ local Original = {
 local gui = Instance.new("ScreenGui", guiParent)
 gui.ResetOnSpawn = false
 
+--------------------------------------------------
+-- FPS COUNTER (NOVO)
+--------------------------------------------------
+local fpsLabel = Instance.new("TextLabel", gui)
+fpsLabel.Size = UDim2.fromOffset(130,28)
+fpsLabel.Position = UDim2.new(1,-140,0,10)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextColor3 = Color3.fromRGB(255,60,60)
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextSize = 14
+fpsLabel.TextXAlignment = Enum.TextXAlignment.Right
+fpsLabel.Text = "FPS: 0"
+fpsLabel.Visible = false
+
+local fpsEnabled = false
+local frames = 0
+local lastTick = tick()
+
+RunService.RenderStepped:Connect(function()
+	if not fpsEnabled then return end
+	frames += 1
+	if tick() - lastTick >= 1 then
+		fpsLabel.Text = "FPS: "..frames
+		frames = 0
+		lastTick = tick()
+	end
+end)
+
+--------------------------------------------------
+-- MAIN
+--------------------------------------------------
 local Main = Instance.new("Frame", gui)
 Main.Size = UDim2.fromOffset(440, 580)
 Main.Position = UDim2.new(0.5,-220,0.5,-290)
@@ -108,7 +139,7 @@ Close.BackgroundTransparency = 1
 Close.TextColor3 = Color3.fromRGB(200,40,40)
 
 --------------------------------------------------
--- SCROLL (ESTÁVEL)
+-- SCROLL
 --------------------------------------------------
 local Scroll = Instance.new("ScrollingFrame", Main)
 Scroll.Position = UDim2.new(0,10,0,58)
@@ -126,7 +157,7 @@ Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 --------------------------------------------------
--- TOGGLE SYSTEM SEGURO
+-- TOGGLE SYSTEM
 --------------------------------------------------
 local function createToggle(name, on, off)
 	local state = false
@@ -155,7 +186,7 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- FUNÇÕES EXISTENTES
+-- FUNÇÕES EXISTENTES (INALTERADAS)
 --------------------------------------------------
 local gcRunning = false
 createToggle("🧹 Garbage Collector", function()
@@ -193,105 +224,14 @@ end,function()
 end)
 
 --------------------------------------------------
--- +18 NOVAS FUNÇÕES (TESTADAS)
+-- NOVA FUNÇÃO ADICIONADA (FPS)
 --------------------------------------------------
-
-createToggle("🚫 Desativar Pós-Processamento", function()
-	for _,v in ipairs(Lighting:GetChildren()) do
-		if v:IsA("PostEffect") then
-			Original.Effects[v] = v.Enabled
-			v.Enabled = false
-		end
-	end
+createToggle("📊 Mostrar FPS (tempo real)", function()
+	fpsEnabled = true
+	fpsLabel.Visible = true
 end,function()
-	for v,state in pairs(Original.Effects) do
-		if v then v.Enabled = state end
-	end
-end)
-
-createToggle("☁️ Remover Atmosphere", function()
-	local a = Lighting:FindFirstChildOfClass("Atmosphere")
-	if a then a.Enabled = false end
-end)
-
-createToggle("🌌 Remover Skybox", function()
-	local s = Lighting:FindFirstChildOfClass("Sky")
-	if s then s.Parent = nil end
-end)
-
-createToggle("✨ Desativar Partículas", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("ParticleEmitter") then v.Enabled = false end
-	end
-end)
-
-createToggle("🔥 Desativar Fire", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Fire") then v.Enabled = false end
-	end
-end)
-
-createToggle("💨 Desativar Smoke", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Smoke") then v.Enabled = false end
-	end
-end)
-
-createToggle("🧵 Desativar Trails", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Trail") then v.Enabled = false end
-	end
-end)
-
-createToggle("🧱 Materiais Plásticos", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.Material = Enum.Material.Plastic
-			v.CastShadow = false
-		end
-	end
-end)
-
-createToggle("🖼️ Remover Decals", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Decal") or v:IsA("Texture") then
-			v.Transparency = 1
-		end
-	end
-end)
-
-createToggle("📦 Simplificar MeshParts", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("MeshPart") then
-			v.RenderFidelity = Enum.RenderFidelity.Performance
-		end
-	end
-end)
-
-createToggle("🧠 Desativar Animações", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Animator") then
-			v.Parent = nil
-		end
-	end
-end)
-
-createToggle("🛑 Desativar Sounds", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Sound") then v.Volume = 0 end
-	end
-end)
-
-createToggle("📉 Reduzir Brightness", function()
-	Lighting.Brightness = 1
-end,function()
-	Lighting.Brightness = Original.Brightness
-end)
-
-createToggle("⚙️ Ultra Performance Mode", function()
-	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-	Lighting.GlobalShadows = false
-	Lighting.Brightness = 1
+	fpsEnabled = false
+	fpsLabel.Visible = false
 end)
 
 --------------------------------------------------
@@ -322,4 +262,3 @@ end)
 Close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
- 
