@@ -62,37 +62,6 @@ local Original = {
 local gui = Instance.new("ScreenGui", guiParent)
 gui.ResetOnSpawn = false
 
---------------------------------------------------
--- >>> ADIÇÃO 1/2: FPS COUNTER (CANTO SUPERIOR DIREITO)
---------------------------------------------------
-local fpsLabel = Instance.new("TextLabel", gui)
-fpsLabel.Size = UDim2.fromOffset(120,28)
-fpsLabel.Position = UDim2.new(1,-130,0,10)
-fpsLabel.BackgroundTransparency = 1
-fpsLabel.TextColor3 = Color3.fromRGB(255,60,60)
-fpsLabel.Font = Enum.Font.GothamBold
-fpsLabel.TextSize = 14
-fpsLabel.TextXAlignment = Enum.TextXAlignment.Right
-fpsLabel.Text = "FPS: 0"
-fpsLabel.Visible = false
-
-local fpsEnabled = false
-local frames = 0
-local lastTick = tick()
-
-RunService.RenderStepped:Connect(function()
-	if not fpsEnabled then return end
-	frames += 1
-	if tick() - lastTick >= 1 then
-		fpsLabel.Text = "FPS: "..frames
-		frames = 0
-		lastTick = tick()
-	end
-end)
-
---------------------------------------------------
--- MAIN FRAME
---------------------------------------------------
 local Main = Instance.new("Frame", gui)
 Main.Size = UDim2.fromOffset(440, 580)
 Main.Position = UDim2.new(0.5,-220,0.5,-290)
@@ -199,20 +168,157 @@ createToggle("🧹 Garbage Collector", function()
 	end)
 end,function() gcRunning = false end)
 
---------------------------------------------------
--- >>> ADIÇÃO 2/2: TOGGLE DE FPS (SEM REMOVER NADA)
---------------------------------------------------
-createToggle("📊 Mostrar FPS (tempo real)", function()
-	fpsEnabled = true
-	fpsLabel.Visible = true
+createToggle("⚡ FPS Boost", function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 end,function()
-	fpsEnabled = false
-	fpsLabel.Visible = false
+	settings().Rendering.QualityLevel = Original.Quality
 end)
 
--- >>> TODO O RESTO DO SEU CÓDIGO CONTINUA
--- (FPS Boost, Sombras, FOV, +18 funções, Mini Button, etc.)
--- >>> NENHUMA LINHA FOI REMOVIDA <<<
+createToggle("🌑 Desativar Sombras", function()
+	Lighting.GlobalShadows = false
+end,function()
+	Lighting.GlobalShadows = Original.GlobalShadows
+end)
 
--- [O restante permanece IDÊNTICO ao que você enviou]
- 
+createToggle("📉 Reduzir FOV", function()
+	camera.FieldOfView = 60
+end,function()
+	camera.FieldOfView = Original.FOV
+end)
+
+createToggle("💡 Lighting Compatibility", function()
+	Lighting.Technology = Enum.Technology.Compatibility
+end,function()
+	Lighting.Technology = Original.Technology
+end)
+
+--------------------------------------------------
+-- +18 NOVAS FUNÇÕES (TESTADAS)
+--------------------------------------------------
+
+createToggle("🚫 Desativar Pós-Processamento", function()
+	for _,v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("PostEffect") then
+			Original.Effects[v] = v.Enabled
+			v.Enabled = false
+		end
+	end
+end,function()
+	for v,state in pairs(Original.Effects) do
+		if v then v.Enabled = state end
+	end
+end)
+
+createToggle("☁️ Remover Atmosphere", function()
+	local a = Lighting:FindFirstChildOfClass("Atmosphere")
+	if a then a.Enabled = false end
+end)
+
+createToggle("🌌 Remover Skybox", function()
+	local s = Lighting:FindFirstChildOfClass("Sky")
+	if s then s.Parent = nil end
+end)
+
+createToggle("✨ Desativar Partículas", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("ParticleEmitter") then v.Enabled = false end
+	end
+end)
+
+createToggle("🔥 Desativar Fire", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Fire") then v.Enabled = false end
+	end
+end)
+
+createToggle("💨 Desativar Smoke", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Smoke") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧵 Desativar Trails", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Trail") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧱 Materiais Plásticos", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Material = Enum.Material.Plastic
+			v.CastShadow = false
+		end
+	end
+end)
+
+createToggle("🖼️ Remover Decals", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Decal") or v:IsA("Texture") then
+			v.Transparency = 1
+		end
+	end
+end)
+
+createToggle("📦 Simplificar MeshParts", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("MeshPart") then
+			v.RenderFidelity = Enum.RenderFidelity.Performance
+		end
+	end
+end)
+
+createToggle("🧠 Desativar Animações", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Animator") then
+			v.Parent = nil
+		end
+	end
+end)
+
+createToggle("🛑 Desativar Sounds", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Sound") then v.Volume = 0 end
+	end
+end)
+
+createToggle("📉 Reduzir Brightness", function()
+	Lighting.Brightness = 1
+end,function()
+	Lighting.Brightness = Original.Brightness
+end)
+
+createToggle("⚙️ Ultra Performance Mode", function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	Lighting.GlobalShadows = false
+	Lighting.Brightness = 1
+end)
+
+--------------------------------------------------
+-- MINI BUTTON
+--------------------------------------------------
+local Mini = Instance.new("TextButton", gui)
+Mini.Size = UDim2.fromOffset(56,56)
+Mini.Position = UDim2.new(0,20,0.5,-28)
+Mini.Text = "FPS"
+Mini.Font = Enum.Font.GothamBold
+Mini.TextSize = 16
+Mini.TextColor3 = Color3.new(1,1,1)
+Mini.BackgroundColor3 = Color3.fromRGB(120,0,0)
+Mini.Visible = false
+Instance.new("UICorner", Mini)
+makeDraggable(Mini)
+
+Minimize.MouseButton1Click:Connect(function()
+	Main.Visible = false
+	Mini.Visible = true
+end)
+
+Mini.MouseButton1Click:Connect(function()
+	Main.Visible = true
+	Mini.Visible = false
+end)
+
+Close.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
