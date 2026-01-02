@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.9 STABLE EXTENDED
+ Versão: 2.0 STABLE MOBILE+
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -59,16 +59,43 @@ local Original = {
 	Brightness = Lighting.Brightness,
 	Technology = Lighting.Technology,
 	FOV = camera.FieldOfView,
-	Effects = {}
 }
 
 --------------------------------------------------
--- GUI BASE (RESPONSIVO)
+-- GUI BASE
 --------------------------------------------------
 local gui = Instance.new("ScreenGui", guiParent)
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 
+--------------------------------------------------
+-- FPS COUNTER
+--------------------------------------------------
+local fpsLabel = Instance.new("TextLabel", gui)
+fpsLabel.AnchorPoint = Vector2.new(1,0)
+fpsLabel.Position = UDim2.new(1,-10,0,10)
+fpsLabel.Size = UDim2.fromOffset(130,28)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextColor3 = Color3.fromRGB(255,80,80)
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextSize = 14
+fpsLabel.Text = "FPS: 0"
+fpsLabel.Visible = false
+
+local fpsEnabled, frames, lastTick = false, 0, tick()
+RunService.RenderStepped:Connect(function()
+	if not fpsEnabled then return end
+	frames += 1
+	if tick() - lastTick >= 1 then
+		fpsLabel.Text = "FPS: "..frames
+		frames = 0
+		lastTick = tick()
+	end
+end)
+
+--------------------------------------------------
+-- MAIN WINDOW
+--------------------------------------------------
 local Main = Instance.new("Frame", gui)
 Main.AnchorPoint = Vector2.new(0.5,0.5)
 Main.Position = UDim2.fromScale(0.5,0.5)
@@ -90,30 +117,12 @@ Instance.new("UICorner", Header)
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1,-100,1,0)
 Title.Position = UDim2.new(0,12,0,0)
-Title.Text = "🔥 FPS OPTIMIZER PRO v1.9"
+Title.Text = "🔥 FPS OPTIMIZER PRO v2.0"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextColor3 = Color3.fromRGB(200,40,40)
 Title.BackgroundTransparency = 1
 Title.TextXAlignment = Enum.TextXAlignment.Left
-
-local Minimize = Instance.new("TextButton", Header)
-Minimize.Size = UDim2.fromOffset(32,32)
-Minimize.Position = UDim2.new(1,-72,0,8)
-Minimize.Text = "–"
-Minimize.Font = Enum.Font.GothamBold
-Minimize.TextSize = 22
-Minimize.BackgroundTransparency = 1
-Minimize.TextColor3 = Color3.new(1,1,1)
-
-local Close = Instance.new("TextButton", Header)
-Close.Size = UDim2.fromOffset(32,32)
-Close.Position = UDim2.new(1,-36,0,8)
-Close.Text = "X"
-Close.Font = Enum.Font.GothamBold
-Close.TextSize = 16
-Close.BackgroundTransparency = 1
-Close.TextColor3 = Color3.fromRGB(200,40,40)
 
 --------------------------------------------------
 -- SCROLL
@@ -121,7 +130,6 @@ Close.TextColor3 = Color3.fromRGB(200,40,40)
 local Scroll = Instance.new("ScrollingFrame", Main)
 Scroll.Position = UDim2.new(0,10,0,58)
 Scroll.Size = UDim2.new(1,-20,1,-88)
-Scroll.CanvasSize = UDim2.new(0,0,0,0)
 Scroll.ScrollBarThickness = 6
 Scroll.BackgroundTransparency = 1
 
@@ -162,104 +170,100 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- FUNÇÕES ORIGINAIS (NÃO REMOVIDAS)
+-- NOVAS 15 FUNÇÕES ADICIONAIS
 --------------------------------------------------
-local gcRunning = false
-createToggle("🧹 Garbage Collector", function()
-	gcRunning = true
-	task.spawn(function()
-		while gcRunning do
-			collectgarbage("collect")
-			task.wait(5)
+
+createToggle("📱 Mobile FPS Unlock", function()
+	pcall(function()
+		if setfpscap then
+			setfpscap(0)
 		end
 	end)
-end,function() gcRunning = false end)
-
-createToggle("⚡ FPS Boost", function()
-	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-end,function()
-	settings().Rendering.QualityLevel = Original.Quality
 end)
 
-createToggle("🌑 Desativar Sombras", function()
-	Lighting.GlobalShadows = false
-end,function()
-	Lighting.GlobalShadows = Original.GlobalShadows
-end)
-
-createToggle("📉 Reduzir FOV", function()
-	camera.FieldOfView = 60
-end,function()
-	camera.FieldOfView = Original.FOV
-end)
-
-createToggle("💡 Lighting Compatibility", function()
-	Lighting.Technology = Enum.Technology.Compatibility
-end,function()
-	Lighting.Technology = Original.Technology
-end)
-
---------------------------------------------------
--- TODAS AS FUNÇÕES DE OTIMIZAÇÃO (EXPANDIDAS)
---------------------------------------------------
-createToggle("🚫 Pós-Processamento", function()
-	for _,v in ipairs(Lighting:GetChildren()) do
-		if v:IsA("PostEffect") then v.Enabled = false end
+createToggle("🧊 Desativar Beams", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Beam") then v.Enabled = false end
 	end
 end)
 
-createToggle("☁️ Atmosphere OFF", function()
-	local a = Lighting:FindFirstChildOfClass("Atmosphere")
-	if a then a.Enabled = false end
-end)
-
-createToggle("🌌 Skybox OFF", function()
-	local s = Lighting:FindFirstChildOfClass("Sky")
-	if s then s.Parent = nil end
-end)
-
-createToggle("✨ Partículas OFF", function()
+createToggle("💡 Desativar PointLights", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("ParticleEmitter") then v.Enabled = false end
+		if v:IsA("PointLight") then v.Enabled = false end
 	end
 end)
 
-createToggle("🔥 Fire OFF", function()
+createToggle("🔦 Desativar SpotLights", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Fire") then v.Enabled = false end
+		if v:IsA("SpotLight") then v.Enabled = false end
 	end
 end)
 
-createToggle("💨 Smoke OFF", function()
+createToggle("🪟 Desativar SurfaceLights", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Smoke") then v.Enabled = false end
+		if v:IsA("SurfaceLight") then v.Enabled = false end
 	end
 end)
 
-createToggle("🧵 Trails OFF", function()
+createToggle("🧽 Remover SurfaceAppearance", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Trail") then v.Enabled = false end
+		if v:IsA("SurfaceAppearance") then v:Destroy() end
 	end
 end)
 
-createToggle("🧱 Plastic Materials", function()
+createToggle("🧊 Desativar Highlights", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.Material = Enum.Material.Plastic
+		if v:IsA("Highlight") then v.Enabled = false end
+	end
+end)
+
+createToggle("📉 Reduzir Particle Rate", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("ParticleEmitter") then
+			v.Rate = math.max(1, v.Rate * 0.2)
+		end
+	end
+end)
+
+createToggle("🧵 Reduzir Trail Lifetime", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Trail") then
+			v.Lifetime = NumberRange.new(0.1)
+		end
+	end
+end)
+
+createToggle("🌊 Otimizar Água", function()
+	if Terrain then
+		Terrain.WaterWaveSize = 0
+		Terrain.WaterWaveSpeed = 0
+		Terrain.WaterReflectance = 0
+		Terrain.WaterTransparency = 1
+	end
+end)
+
+createToggle("⚙️ Physics Throttle OFF", function()
+	settings().Physics.AllowSleep = true
+end)
+
+createToggle("🧍 Simplificar Humanoids", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Humanoid") then
+			v:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
+			v:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
+		end
+	end
+end)
+
+createToggle("🧹 Limpar Invisíveis", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") and v.Transparency >= 1 then
 			v.CastShadow = false
 		end
 	end
 end)
 
-createToggle("🖼️ Decals OFF", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Decal") or v:IsA("Texture") then
-			v.Transparency = 1
-		end
-	end
-end)
-
-createToggle("📦 Mesh Performance", function()
+createToggle("📦 Forçar LOD Baixo", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("MeshPart") then
 			v.RenderFidelity = Enum.RenderFidelity.Performance
@@ -267,76 +271,21 @@ createToggle("📦 Mesh Performance", function()
 	end
 end)
 
-createToggle("🧠 Animations OFF", function()
+createToggle("🧠 Animações Extra OFF", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Animator") then v.Parent = nil end
-	end
-end)
-
-createToggle("🔇 Sounds OFF", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Sound") then v.Volume = 0 end
+		if v:IsA("AnimationController") then
+			v.Parent = nil
+		end
 	end
 end)
 
 --------------------------------------------------
--- FPS COUNTER (TEMPO REAL)
+-- FPS TOGGLE
 --------------------------------------------------
-local fpsLabel = Instance.new("TextLabel", gui)
-fpsLabel.AnchorPoint = Vector2.new(1,0)
-fpsLabel.Position = UDim2.new(1,-10,0,10)
-fpsLabel.Size = UDim2.fromOffset(120,28)
-fpsLabel.BackgroundTransparency = 1
-fpsLabel.TextColor3 = Color3.fromRGB(255,80,80)
-fpsLabel.Font = Enum.Font.GothamBold
-fpsLabel.TextSize = 14
-fpsLabel.Text = "FPS: 0"
-fpsLabel.Visible = false
-
-local fpsOn, frames, last = false, 0, tick()
-RunService.RenderStepped:Connect(function()
-	if not fpsOn then return end
-	frames += 1
-	if tick() - last >= 1 then
-		fpsLabel.Text = "FPS: "..frames
-		frames = 0
-		last = tick()
-	end
-end)
-
 createToggle("📊 Mostrar FPS", function()
-	fpsOn = true
+	fpsEnabled = true
 	fpsLabel.Visible = true
 end,function()
-	fpsOn = false
+	fpsEnabled = false
 	fpsLabel.Visible = false
-end)
-
---------------------------------------------------
--- MINI BUTTON
---------------------------------------------------
-local Mini = Instance.new("TextButton", gui)
-Mini.Size = UDim2.fromOffset(56,56)
-Mini.Position = UDim2.new(0,20,0.5,-28)
-Mini.Text = "FPS"
-Mini.Font = Enum.Font.GothamBold
-Mini.TextSize = 16
-Mini.TextColor3 = Color3.new(1,1,1)
-Mini.BackgroundColor3 = Color3.fromRGB(120,0,0)
-Mini.Visible = false
-Instance.new("UICorner", Mini)
-makeDraggable(Mini)
-
-Minimize.MouseButton1Click:Connect(function()
-	Main.Visible = false
-	Mini.Visible = true
-end)
-
-Mini.MouseButton1Click:Connect(function()
-	Main.Visible = true
-	Mini.Visible = false
-end)
-
-Close.MouseButton1Click:Connect(function()
-	gui:Destroy()
 end)
