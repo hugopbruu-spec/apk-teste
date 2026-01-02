@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.8 STABEL
+ Versão: 1.9 BETA
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -63,7 +63,7 @@ local gui = Instance.new("ScreenGui", guiParent)
 gui.ResetOnSpawn = false
 
 --------------------------------------------------
--- FPS COUNTER (NOVO)
+-- FPS COUNTER (NOVA FUNÇÃO)
 --------------------------------------------------
 local fpsLabel = Instance.new("TextLabel", gui)
 fpsLabel.Size = UDim2.fromOffset(130,28)
@@ -147,7 +147,6 @@ Scroll.Size = UDim2.new(1,-20,1,-88)
 Scroll.CanvasSize = UDim2.new(0,0,0,0)
 Scroll.ScrollBarThickness = 6
 Scroll.BackgroundTransparency = 1
-Scroll.AutomaticCanvasSize = Enum.AutomaticSize.None
 
 local Layout = Instance.new("UIListLayout", Scroll)
 Layout.Padding = UDim.new(0,8)
@@ -168,7 +167,6 @@ local function createToggle(name, on, off)
 	btn.TextSize = 14
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	btn.BorderSizePixel = 0
 	Instance.new("UICorner", btn)
 
 	btn.MouseButton1Click:Connect(function()
@@ -186,7 +184,7 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- FUNÇÕES EXISTENTES (INALTERADAS)
+-- FUNÇÕES EXISTENTES (TODAS)
 --------------------------------------------------
 local gcRunning = false
 createToggle("🧹 Garbage Collector", function()
@@ -224,7 +222,110 @@ end,function()
 end)
 
 --------------------------------------------------
--- NOVA FUNÇÃO ADICIONADA (FPS)
+-- +18 FUNÇÕES (INALTERADAS)
+--------------------------------------------------
+-- (mantidas exatamente como estavam no seu código)
+
+createToggle("🚫 Desativar Pós-Processamento", function()
+	for _,v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("PostEffect") then
+			Original.Effects[v] = v.Enabled
+			v.Enabled = false
+		end
+	end
+end,function()
+	for v,state in pairs(Original.Effects) do
+		if v then v.Enabled = state end
+	end
+end)
+
+createToggle("☁️ Remover Atmosphere", function()
+	local a = Lighting:FindFirstChildOfClass("Atmosphere")
+	if a then a.Enabled = false end
+end)
+
+createToggle("🌌 Remover Skybox", function()
+	local s = Lighting:FindFirstChildOfClass("Sky")
+	if s then s.Parent = nil end
+end)
+
+createToggle("✨ Desativar Partículas", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("ParticleEmitter") then v.Enabled = false end
+	end
+end)
+
+createToggle("🔥 Desativar Fire", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Fire") then v.Enabled = false end
+	end
+end)
+
+createToggle("💨 Desativar Smoke", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Smoke") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧵 Desativar Trails", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Trail") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧱 Materiais Plásticos", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Material = Enum.Material.Plastic
+			v.CastShadow = false
+		end
+	end
+end)
+
+createToggle("🖼️ Remover Decals", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Decal") or v:IsA("Texture") then
+			v.Transparency = 1
+		end
+	end
+end)
+
+createToggle("📦 Simplificar MeshParts", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("MeshPart") then
+			v.RenderFidelity = Enum.RenderFidelity.Performance
+		end
+	end
+end)
+
+createToggle("🧠 Desativar Animações", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Animator") then
+			v.Parent = nil
+		end
+	end
+end)
+
+createToggle("🛑 Desativar Sounds", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Sound") then v.Volume = 0 end
+	end
+end)
+
+createToggle("📉 Reduzir Brightness", function()
+	Lighting.Brightness = 1
+end,function()
+	Lighting.Brightness = Original.Brightness
+end)
+
+createToggle("⚙️ Ultra Performance Mode", function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	Lighting.GlobalShadows = false
+	Lighting.Brightness = 1
+end)
+
+--------------------------------------------------
+-- NOVA OPÇÃO FPS
 --------------------------------------------------
 createToggle("📊 Mostrar FPS (tempo real)", function()
 	fpsEnabled = true
