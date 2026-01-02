@@ -2,7 +2,7 @@
  FPS OPTIMIZER PRO
  Criador: Frostzn
  Versão: 1.7.1 FINAL FIX
-=======================================================]]
+
 
 ---------------- SERVICES ----------------
 local Players = game:GetService("Players")
