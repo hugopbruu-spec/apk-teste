@@ -115,7 +115,7 @@ Instance.new("UICorner", Header)
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1,-100,1,0)
 Title.Position = UDim2.new(0,12,0,0)
-Title.Text = "🔥 FPS OPTIMIZER PRO v1.8"
+Title.Text = "🔥 FPS OPTIMIZER PRO v1.9.2 BETA"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextColor3 = Color3.fromRGB(200,40,40)
