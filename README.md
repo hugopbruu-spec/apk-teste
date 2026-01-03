@@ -446,17 +446,6 @@ createToggle("🌘 Reduzir CastShadow Dinâmico", function()
 	end
 end)
 
-createToggle("⚖️ Limitar Física de Objetos", function()
-	if OptimizationLevel == "BAIXO" then return end
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart") and not v.Anchored then
-			if OptimizationLevel ~= "MEDIO" then
-				v.CustomPhysicalProperties = PhysicalProperties.new(0,0,0,0,0)
-			end
-		end
-	end
-end)
-
 createToggle("🫥 Reduzir Transparências", function()
 	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
