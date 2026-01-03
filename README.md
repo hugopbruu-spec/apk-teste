@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.9 STABLE EXTENDED (FULL +10)
+ Versão: 1.9 STABLE EXTENDE (FULL +10)
 =======================================================]]
 
 ---------------- SERVICES ----------------
