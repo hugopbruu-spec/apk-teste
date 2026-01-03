@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.9 STABLE EXTENDED (FINAL)
+ Versão: 1.9 STABLE EXTENDED (FULL)
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -58,7 +58,8 @@ local Original = {
 	GlobalShadows = Lighting.GlobalShadows,
 	Brightness = Lighting.Brightness,
 	Technology = Lighting.Technology,
-	FOV = camera.FieldOfView
+	FOV = camera.FieldOfView,
+	Effects = {}
 }
 
 --------------------------------------------------
@@ -160,79 +161,158 @@ local function createToggle(name, on, off)
 end
 
 --------------------------------------------------
--- (TODAS AS FUNÇÕES EXISTENTES PERMANECEM IGUAIS)
--- [NÃO ALTERADAS]
+-- FUNÇÕES ORIGINAIS
 --------------------------------------------------
--- ... (mantidas exatamente como no seu código)
--- Garbage Collector, FPS Boost, Shadows, FOV,
--- Lighting, Particles, Mesh, FPS Counter, Mini Button
---------------------------------------------------
+local gcRunning = false
+createToggle("🧹 Garbage Collector", function()
+	gcRunning = true
+	task.spawn(function()
+		while gcRunning do
+			collectgarbage("collect")
+			task.wait(5)
+		end
+	end)
+end,function() gcRunning = false end)
+
+createToggle("⚡ FPS Boost", function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+end,function()
+	settings().Rendering.QualityLevel = Original.Quality
+end)
+
+createToggle("🌑 Desativar Sombras", function()
+	Lighting.GlobalShadows = false
+end,function()
+	Lighting.GlobalShadows = Original.GlobalShadows
+end)
+
+createToggle("📉 Reduzir FOV", function()
+	camera.FieldOfView = 60
+end,function()
+	camera.FieldOfView = Original.FOV
+end)
+
+createToggle("💡 Lighting Compatibility", function()
+	Lighting.Technology = Enum.Technology.Compatibility
+end,function()
+	Lighting.Technology = Original.Technology
+end)
+
+createToggle("🚫 Pós-Processamento", function()
+	for _,v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("PostEffect") then v.Enabled = false end
+	end
+end)
+
+createToggle("☁️ Atmosphere OFF", function()
+	local a = Lighting:FindFirstChildOfClass("Atmosphere")
+	if a then a.Enabled = false end
+end)
+
+createToggle("🌌 Skybox OFF", function()
+	local s = Lighting:FindFirstChildOfClass("Sky")
+	if s then s.Parent = nil end
+end)
+
+createToggle("✨ Partículas OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("ParticleEmitter") then v.Enabled = false end
+	end
+end)
+
+createToggle("🔥 Fire OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Fire") then v.Enabled = false end
+	end
+end)
+
+createToggle("💨 Smoke OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Smoke") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧵 Trails OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Trail") then v.Enabled = false end
+	end
+end)
+
+createToggle("🧱 Plastic Materials", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Material = Enum.Material.Plastic
+			v.CastShadow = false
+		end
+	end
+end)
+
+createToggle("🖼️ Decals OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Decal") or v:IsA("Texture") then
+			v.Transparency = 1
+		end
+	end
+end)
+
+createToggle("📦 Mesh Performance", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("MeshPart") then
+			v.RenderFidelity = Enum.RenderFidelity.Performance
+		end
+	end
+end)
+
+createToggle("🧠 Animations OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Animator") then v.Parent = nil end
+	end
+end)
+
+createToggle("🔇 Sounds OFF", function()
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Sound") then v.Volume = 0 end
+	end
+end)
 
 --------------------------------------------------
--- 🆕 NOVAS FUNÇÕES DE OTIMIZAÇÃO (15)
+-- FPS COUNTER
 --------------------------------------------------
+local fpsLabel = Instance.new("TextLabel", gui)
+fpsLabel.AnchorPoint = Vector2.new(1,0)
+fpsLabel.Position = UDim2.new(1,-10,0,10)
+fpsLabel.Size = UDim2.fromOffset(120,28)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextColor3 = Color3.fromRGB(255,80,80)
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextSize = 14
+fpsLabel.Text = "FPS: 0"
+fpsLabel.Visible = false
 
+local fpsOn, frames, last = false, 0, tick()
+RunService.RenderStepped:Connect(function()
+	if not fpsOn then return end
+	frames += 1
+	if tick() - last >= 1 then
+		fpsLabel.Text = "FPS: "..frames
+		frames = 0
+		last = tick()
+	end
+end)
+
+createToggle("📊 Mostrar FPS", function()
+	fpsOn = true
+	fpsLabel.Visible = true
+end,function()
+	fpsOn = false
+	fpsLabel.Visible = false
+end)
+
+--------------------------------------------------
+-- 🆕 MOBILE FPS UNLOCK
+--------------------------------------------------
 createToggle("📱 Mobile FPS Unlock", function()
 	if setfpscap then setfpscap(0) end
-end)
-
-createToggle("💡 Disable All Lights", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight") then
-			v.Enabled = false
-		end
-	end
-end)
-
-createToggle("🌫️ Disable Fog", function()
-	Lighting.FogEnd = 9e9
-end)
-
-createToggle("🌊 Water Low Quality", function()
-	if Terrain then
-		Terrain.WaterWaveSize = 0
-		Terrain.WaterWaveSpeed = 0
-		Terrain.WaterReflectance = 0
-		Terrain.WaterTransparency = 1
-	end
-end)
-
-createToggle("🧩 Disable Constraints", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Constraint") then v.Enabled = false end
-	end
-end)
-
-createToggle("🪢 Disable Ropes", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("RopeConstraint") then v.Enabled = false end
-	end
-end)
-
-createToggle("🧷 Disable Attachments", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Attachment") then v.Visible = false end
-	end
-end)
-
-createToggle("🧠 Reduce Humanoid Updates", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Humanoid") then
-			v.BreakJointsOnDeath = false
-		end
-	end
-end)
-
-createToggle("🧮 Reduce Physics Precision", function()
-	settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Enabled
-end)
-
-createToggle("📡 Network Optimize", function()
-	settings().Network.IncomingReplicationLag = 0
-end)
-
-createToggle("🧹 Deep Workspace Cleanup", function()
-	collectgarbage("collect")
 end)
 
 --------------------------------------------------
