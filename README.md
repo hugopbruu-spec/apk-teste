@@ -247,15 +247,12 @@ createToggle("🧹 Garbage Collector", function()
 	task.spawn(function()
 		while gcRunning do
 			collectgarbage("collect")
-			if OptimizationLevel == "BAIXO" then
-				task.wait(15)
-			elseif OptimizationLevel == "MEDIO" then
-				task.wait(8)
-			elseif OptimizationLevel == "ALTO" then
-				task.wait(4)
-			elseif OptimizationLevel == "ULTRA" then
-				task.wait(1)
-			end
+			task.wait(
+				OptimizationLevel == "BAIXO" and 20 or
+				OptimizationLevel == "MEDIO" and 10 or
+				OptimizationLevel == "ALTO" and 5 or
+				1
+			)
 		end
 	end)
 end,function()
@@ -273,19 +270,14 @@ end)
 
 
 createToggle("📉 Reduzir FOV", function()
-	if OptimizationLevel == "BAIXO" then
-		camera.FieldOfView = 68
-	elseif OptimizationLevel == "MEDIO" then
-		camera.FieldOfView = 65
-	elseif OptimizationLevel == "ALTO" then
-		camera.FieldOfView = 60
-	elseif OptimizationLevel == "ULTRA" then
-		camera.FieldOfView = 50
-	end
+	camera.FieldOfView =
+		OptimizationLevel == "BAIXO" and 70 or
+		OptimizationLevel == "MEDIO" and 65 or
+		OptimizationLevel == "ALTO" and 58 or
+		50
 end,function()
 	camera.FieldOfView = Original.FOV
 end)
-
 
 createToggle("🚫 Desativar Pós-Processamento", function()
 	for _,v in ipairs(Lighting:GetChildren()) do
@@ -303,95 +295,98 @@ end,function()
 end)
 
 
+
 createToggle("☁️ Remover Atmosphere", function()
-	local a = Lighting:FindFirstChildOfClass("Atmosphere")
-	if a then a.Enabled = false end
+	if OptimizationLevel ~= "BAIXO" then
+		local a = Lighting:FindFirstChildOfClass("Atmosphere")
+		if a then a.Enabled = false end
+	end
 end)
 
 createToggle("🌌 Remover Skybox", function()
-	local s = Lighting:FindFirstChildOfClass("Sky")
-	if s then s.Parent = nil end
+	if OptimizationLevel ~= "BAIXO" then
+		local s = Lighting:FindFirstChildOfClass("Sky")
+		if s then s.Parent = nil end
+	end
 end)
 
-local function levelAllowsEffects()
-	return OptimizationLevel ~= "BAIXO"
-end
 createToggle("✨ Desativar Partículas", function()
-	if not levelAllowsEffects() then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("ParticleEmitter") then v.Enabled = false end
+		if v:IsA("ParticleEmitter") then
+			v.Enabled = OptimizationLevel == "BAIXO"
+		end
 	end
 end)
 
-createToggle("🔥 Desativar Fire", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Fire") then v.Enabled = false end
-	end
-end)
 
-createToggle("💨 Desativar Smoke", function()
+local function disableClass(class)
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Smoke") then v.Enabled = false end
+		if v:IsA(class) then
+			v.Enabled = OptimizationLevel ~= "BAIXO"
+		end
 	end
-end)
+end
 
-createToggle("🧵 Desativar Trails", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Trail") then v.Enabled = false end
-	end
-end)
+createToggle("🔥 Desativar Fire", function() disableClass("Fire") end)
+createToggle("💨 Desativar Smoke", function() disableClass("Smoke") end)
+createToggle("🧵 Desativar Trails", function() disableClass("Trail") end)
+
 
 createToggle("🧱 Materiais Plásticos", function()
 	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") then
 			v.Material = Enum.Material.Plastic
-			if OptimizationLevel ~= "MEDIO" then
-				v.CastShadow = false
-			end
+			v.CastShadow = OptimizationLevel ~= "MEDIO"
 		end
 	end
 end)
 
 
 createToggle("🖼️ Remover Decals", function()
-	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Decal") or v:IsA("Texture") then
-			if OptimizationLevel == "MEDIO" then
-				v.Transparency = 0.7
-			else
-				v.Transparency = 1
-			end
+			v.Transparency =
+				OptimizationLevel == "BAIXO" and 0 or
+				OptimizationLevel == "MEDIO" and 0.6 or
+				1
 		end
 	end
 end)
 
 createToggle("📦 Simplificar MeshParts", function()
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("MeshPart") then
-			v.RenderFidelity = Enum.RenderFidelity.Performance
+	if OptimizationLevel ~= "BAIXO" then
+		for _,v in ipairs(workspace:GetDescendants()) do
+			if v:IsA("MeshPart") then
+				v.RenderFidelity = Enum.RenderFidelity.Performance
+			end
 		end
 	end
 end)
+
 
 createToggle("🧠 Desativar Animações", function()
-	if OptimizationLevel ~= "ULTRA" then return end
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Animator") then
-			v.Parent = nil
+	if OptimizationLevel == "ULTRA" then
+		for _,v in ipairs(workspace:GetDescendants()) do
+			if v:IsA("Animator") then
+				v.Parent = nil
+			end
 		end
 	end
 end)
 
+
 createToggle("🛑 Desativar Sounds", function()
-	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Sound") then
-			v.Volume = (OptimizationLevel == "MEDIO" and 0.2 or 0)
+			v.Volume =
+				OptimizationLevel == "BAIXO" and v.Volume or
+				OptimizationLevel == "MEDIO" and 0.3 or
+				0
 		end
 	end
 end)
+
 
 
 createToggle("💡 Lighting Compatibility", function()
@@ -403,15 +398,18 @@ end,function()
 end)
 
 createToggle("📉 Reduzir Brightness", function()
-	Lighting.Brightness = 1
+	Lighting.Brightness =
+		OptimizationLevel == "BAIXO" and Original.Brightness or
+		1
 end,function()
 	Lighting.Brightness = Original.Brightness
 end)
 
 createToggle("⚙️ Ultra Performance Mode", function()
-	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-	Lighting.GlobalShadows = false
-	Lighting.Brightness = 1
+	if OptimizationLevel == "ULTRA" then
+		settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+		Lighting.GlobalShadows = false
+	end
 end)
 
 --------------------------------------------------
@@ -431,14 +429,21 @@ end)
 
 createToggle("🎩 Ocultar Acessórios (Hats)", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Accessory") then
-			v.Handle.Transparency = 1
-			v.Handle.CanCollide = false
+		if v:IsA("Accessory") and v:FindFirstChild("Handle") then
+			if OptimizationLevel == "BAIXO" then
+				v.Handle.Transparency = 0
+			elseif OptimizationLevel == "MEDIO" then
+				v.Handle.Transparency = 0.5
+			else
+				v.Handle.Transparency = 1
+				v.Handle.CanCollide = false
+			end
 		end
 	end
 end)
 
 createToggle("💠 Desativar Highlights", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Highlight") then
 			v.Enabled = false
@@ -446,7 +451,9 @@ createToggle("💠 Desativar Highlights", function()
 	end
 end)
 
+
 createToggle("📡 Desativar Beams", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Beam") then
 			v.Enabled = false
@@ -454,7 +461,9 @@ createToggle("📡 Desativar Beams", function()
 	end
 end)
 
+
 createToggle("💡 Desativar PointLights", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("PointLight") then
 			v.Enabled = false
@@ -462,7 +471,9 @@ createToggle("💡 Desativar PointLights", function()
 	end
 end)
 
+
 createToggle("🔦 Desativar SpotLights", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("SpotLight") then
 			v.Enabled = false
@@ -470,7 +481,9 @@ createToggle("🔦 Desativar SpotLights", function()
 	end
 end)
 
+
 createToggle("🏮 Desativar SurfaceLights", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("SurfaceLight") then
 			v.Enabled = false
@@ -478,52 +491,72 @@ createToggle("🏮 Desativar SurfaceLights", function()
 	end
 end)
 
+
 createToggle("🪞 Reduzir Reflectance", function()
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") then
-			v.Reflectance = 0
+			if OptimizationLevel == "BAIXO" then
+				-- não altera
+			elseif OptimizationLevel == "MEDIO" then
+				v.Reflectance = 0.2
+			else
+				v.Reflectance = 0
+			end
 		end
 	end
 end)
 
+
 createToggle("📦 Otimizar Colisões", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart") and v.Size.Magnitude < 5 then
+		if v:IsA("BasePart") and v.Size.Magnitude < (OptimizationLevel == "MEDIO" and 3 or 6) then
 			v.CanCollide = false
 		end
 	end
 end)
 
+
 createToggle("🌊 Simplificar Água", function()
-	if workspace:FindFirstChildOfClass("Terrain") then
-		workspace.Terrain.WaterWaveSize = 0
-		workspace.Terrain.WaterWaveSpeed = 0
+	if OptimizationLevel == "BAIXO" then return end
+	local terrain = workspace:FindFirstChildOfClass("Terrain")
+	if terrain then
+		if OptimizationLevel == "MEDIO" then
+			terrain.WaterWaveSize = 0.2
+			terrain.WaterWaveSpeed = 0.2
+		else
+			terrain.WaterWaveSize = 0
+			terrain.WaterWaveSpeed = 0
+		end
 	end
 end)
 
+
 createToggle("🌑 Desativar Sombras", function()
-	if OptimizationLevel ~= "BAIXO" then
-		Lighting.GlobalShadows = false
-	end
+	if OptimizationLevel == "BAIXO" then return end
+	Lighting.GlobalShadows = false
 end,function()
 	Lighting.GlobalShadows = Original.GlobalShadows
 end)
 
+
 createToggle("🌱 Remover Grama do Terrain", function()
-	if workspace:FindFirstChildOfClass("Terrain") then
-		workspace.Terrain.Decoration = false
+	if OptimizationLevel ~= "ULTRA" then return end
+	local terrain = workspace:FindFirstChildOfClass("Terrain")
+	if terrain then
+		terrain.Decoration = false
 	end
 end)
 
-createToggle("📱 Android FPS Unlocker", function()
-	if not setfpscap then return end
 
-	if OptimizationLevel == "MEDIO" then
-		setfpscap(90)
-	elseif OptimizationLevel == "ALTO" then
-		setfpscap(120)
-	elseif OptimizationLevel == "ULTRA" then
-		setfpscap(240)
+createToggle("📱 Android FPS Unlocker", function()
+	if setfpscap then
+		setfpscap(
+			OptimizationLevel == "MEDIO" and 90 or
+			OptimizationLevel == "ALTO" and 120 or
+			OptimizationLevel == "ULTRA" and 240 or
+			60
+		)
 	end
 end)
 
