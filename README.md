@@ -241,6 +241,15 @@ end
 --------------------------------------------------
 -- FUNÇÕES ANTIGAS (100% MANTIDAS)
 --------------------------------------------------
+
+createToggle("📊 Mostrar FPS (tempo real)", function()
+	fpsEnabled = true
+	fpsLabel.Visible = true
+end,function()
+	fpsEnabled = false
+	fpsLabel.Visible = false
+end)
+
 local gcRunning = false
 createToggle("🧹 Garbage Collector", function()
 	gcRunning = true
@@ -594,17 +603,6 @@ createToggle("🧹 Reduzir Debris Lifetime", function()
 	if OptimizationLevel ~= "BAIXO" then
 		game:GetService("Debris").MaxItems = OptimizationLevel == "MEDIO" and 100 or 20
 	end
-end)
-
---------------------------------------------------
--- NOVA FUNÇÃO FPS
---------------------------------------------------
-createToggle("📊 Mostrar FPS (tempo real)", function()
-	fpsEnabled = true
-	fpsLabel.Visible = true
-end,function()
-	fpsEnabled = false
-	fpsLabel.Visible = false
 end)
 
 --------------------------------------------------
