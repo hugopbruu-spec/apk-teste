@@ -416,6 +416,35 @@ createToggle("🌱 Remover Grama do Terrain", function()
 end)
 
 --------------------------------------------------
+-- ANDROID FPS UNLOCKER (SEGURO)
+--------------------------------------------------
+createToggle("📱 Android FPS Unlocker", function()
+
+	-- Qualidade mínima absoluta
+	pcall(function()
+		settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	end)
+
+	-- Força modo performance
+	pcall(function()
+		UserSettings():GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+	end)
+
+	-- Mantém render ativo
+	pcall(function()
+		RunService:Set3dRenderingEnabled(true)
+	end)
+
+	-- Tenta desbloquear FPS (APENAS SE O EXECUTOR SUPORTAR)
+	pcall(function()
+		if setfpscap then
+			setfpscap(240) -- tenta liberar até 240fps
+		end
+	end)
+
+end)
+
+--------------------------------------------------
 -- MINI BUTTON
 --------------------------------------------------
 local Mini = Instance.new("TextButton", gui)
