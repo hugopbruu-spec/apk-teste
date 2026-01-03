@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.8 STABLE
+ Versão: 1.9
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -195,40 +195,53 @@ createToggle("🧹 Garbage Collector", function()
 	task.spawn(function()
 		while gcRunning do
 			collectgarbage("collect")
-			task.wait(5)
+			if OptimizationLevel == "BAIXO" then
+				task.wait(15)
+			elseif OptimizationLevel == "MEDIO" then
+				task.wait(8)
+			elseif OptimizationLevel == "ALTO" then
+				task.wait(4)
+			elseif OptimizationLevel == "ULTRA" then
+				task.wait(1)
+			end
 		end
 	end)
-end,function() gcRunning = false end)
+end,function()
+	gcRunning = false
+end)
+
 
 createToggle("⚡ FPS Boost", function()
-	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	if OptimizationLevel ~= "BAIXO" then
+		settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	end
 end,function()
 	settings().Rendering.QualityLevel = Original.Quality
 end)
 
-createToggle("🌑 Desativar Sombras", function()
-	Lighting.GlobalShadows = false
-end,function()
-	Lighting.GlobalShadows = Original.GlobalShadows
-end)
 
 createToggle("📉 Reduzir FOV", function()
-	camera.FieldOfView = 60
+	if OptimizationLevel == "BAIXO" then
+		camera.FieldOfView = 68
+	elseif OptimizationLevel == "MEDIO" then
+		camera.FieldOfView = 65
+	elseif OptimizationLevel == "ALTO" then
+		camera.FieldOfView = 60
+	elseif OptimizationLevel == "ULTRA" then
+		camera.FieldOfView = 50
+	end
 end,function()
 	camera.FieldOfView = Original.FOV
 end)
 
-createToggle("💡 Lighting Compatibility", function()
-	Lighting.Technology = Enum.Technology.Compatibility
-end,function()
-	Lighting.Technology = Original.Technology
-end)
 
 createToggle("🚫 Desativar Pós-Processamento", function()
 	for _,v in ipairs(Lighting:GetChildren()) do
 		if v:IsA("PostEffect") then
 			Original.Effects[v] = v.Enabled
-			v.Enabled = false
+			if OptimizationLevel ~= "BAIXO" then
+				v.Enabled = false
+			end
 		end
 	end
 end,function()
@@ -236,6 +249,7 @@ end,function()
 		if v then v.Enabled = state end
 	end
 end)
+
 
 createToggle("☁️ Remover Atmosphere", function()
 	local a = Lighting:FindFirstChildOfClass("Atmosphere")
@@ -247,7 +261,11 @@ createToggle("🌌 Remover Skybox", function()
 	if s then s.Parent = nil end
 end)
 
+local function levelAllowsEffects()
+	return OptimizationLevel ~= "BAIXO"
+end
 createToggle("✨ Desativar Partículas", function()
+	if not levelAllowsEffects() then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("ParticleEmitter") then v.Enabled = false end
 	end
@@ -272,18 +290,27 @@ createToggle("🧵 Desativar Trails", function()
 end)
 
 createToggle("🧱 Materiais Plásticos", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") then
 			v.Material = Enum.Material.Plastic
-			v.CastShadow = false
+			if OptimizationLevel ~= "MEDIO" then
+				v.CastShadow = false
+			end
 		end
 	end
 end)
 
+
 createToggle("🖼️ Remover Decals", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Decal") or v:IsA("Texture") then
-			v.Transparency = 1
+			if OptimizationLevel == "MEDIO" then
+				v.Transparency = 0.7
+			else
+				v.Transparency = 1
+			end
 		end
 	end
 end)
@@ -297,6 +324,7 @@ createToggle("📦 Simplificar MeshParts", function()
 end)
 
 createToggle("🧠 Desativar Animações", function()
+	if OptimizationLevel ~= "ULTRA" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("Animator") then
 			v.Parent = nil
@@ -305,9 +333,21 @@ createToggle("🧠 Desativar Animações", function()
 end)
 
 createToggle("🛑 Desativar Sounds", function()
+	if OptimizationLevel == "BAIXO" then return end
 	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("Sound") then v.Volume = 0 end
+		if v:IsA("Sound") then
+			v.Volume = (OptimizationLevel == "MEDIO" and 0.2 or 0)
+		end
 	end
+end)
+
+
+createToggle("💡 Lighting Compatibility", function()
+	if OptimizationLevel ~= "BAIXO" then
+		Lighting.Technology = Enum.Technology.Compatibility
+	end
+end,function()
+	Lighting.Technology = Original.Technology
 end)
 
 createToggle("📉 Reduzir Brightness", function()
@@ -409,39 +449,30 @@ createToggle("🌊 Simplificar Água", function()
 	end
 end)
 
+createToggle("🌑 Desativar Sombras", function()
+	if OptimizationLevel ~= "BAIXO" then
+		Lighting.GlobalShadows = false
+	end
+end,function()
+	Lighting.GlobalShadows = Original.GlobalShadows
+end)
+
 createToggle("🌱 Remover Grama do Terrain", function()
 	if workspace:FindFirstChildOfClass("Terrain") then
 		workspace.Terrain.Decoration = false
 	end
 end)
 
---------------------------------------------------
--- ANDROID FPS UNLOCKER (SEGURO)
---------------------------------------------------
 createToggle("📱 Android FPS Unlocker", function()
+	if not setfpscap then return end
 
-	-- Qualidade mínima absoluta
-	pcall(function()
-		settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-	end)
-
-	-- Força modo performance
-	pcall(function()
-		UserSettings():GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
-	end)
-
-	-- Mantém render ativo
-	pcall(function()
-		RunService:Set3dRenderingEnabled(true)
-	end)
-
-	-- Tenta desbloquear FPS (APENAS SE O EXECUTOR SUPORTAR)
-	pcall(function()
-		if setfpscap then
-			setfpscap(240) -- tenta liberar até 240fps
-		end
-	end)
-
+	if OptimizationLevel == "MEDIO" then
+		setfpscap(90)
+	elseif OptimizationLevel == "ALTO" then
+		setfpscap(120)
+	elseif OptimizationLevel == "ULTRA" then
+		setfpscap(240)
+	end
 end)
 
 --------------------------------------------------
