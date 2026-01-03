@@ -1,7 +1,7 @@
 --[[=====================================================
  FPS OPTIMIZER PRO
  Criador: Frostzn
- Versão: 1.9
+ Versão: 1.9.1
 =======================================================]]
 
 ---------------- SERVICES ----------------
@@ -141,11 +141,63 @@ Close.BackgroundTransparency = 1
 Close.TextColor3 = Color3.fromRGB(200,40,40)
 
 --------------------------------------------------
+-- OPTIMIZATION LEVEL SYSTEM
+--------------------------------------------------
+_G.OptimizationLevel = "MEDIO" -- BAIXO | MEDIO | ALTO | ULTRA
+
+local LevelBar = Instance.new("Frame", Main)
+LevelBar.Size = UDim2.new(1,-20,0,42)
+LevelBar.Position = UDim2.new(0,10,0,52)
+LevelBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+LevelBar.BorderSizePixel = 0
+Instance.new("UICorner", LevelBar)
+
+local LevelLayout = Instance.new("UIListLayout", LevelBar)
+LevelLayout.FillDirection = Enum.FillDirection.Horizontal
+LevelLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+LevelLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+LevelLayout.Padding = UDim.new(0,8)
+
+local function createLevelButton(text, level)
+	local btn = Instance.new("TextButton", LevelBar)
+	btn.Size = UDim2.fromOffset(95,28)
+	btn.Text = text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 13
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	btn.BorderSizePixel = 0
+	Instance.new("UICorner", btn)
+
+	btn.MouseButton1Click:Connect(function()
+		_G.OptimizationLevel = level
+
+		for _,b in ipairs(LevelBar:GetChildren()) do
+			if b:IsA("TextButton") then
+				b.BackgroundColor3 = Color3.fromRGB(35,35,35)
+			end
+		end
+
+		btn.BackgroundColor3 = Color3.fromRGB(120,0,0)
+	end)
+
+	return btn
+end
+
+local LowBtn   = createLevelButton("BAIXO", "BAIXO")
+local MidBtn   = createLevelButton("MÉDIO", "MEDIO")
+local HighBtn  = createLevelButton("ALTO",  "ALTO")
+local UltraBtn = createLevelButton("ULTRA", "ULTRA")
+
+-- nível padrão visual
+MidBtn.BackgroundColor3 = Color3.fromRGB(120,0,0)
+
+--------------------------------------------------
 -- SCROLL (MANTIDO)
 --------------------------------------------------
 local Scroll = Instance.new("ScrollingFrame", Main)
-Scroll.Position = UDim2.new(0,10,0,58)
-Scroll.Size = UDim2.new(1,-20,1,-88)
+Scroll.Position = UDim2.new(0,10,0,104)
+Scroll.Size = UDim2.new(1,-20,1,-134)
 Scroll.CanvasSize = UDim2.new(0,0,0,0)
 Scroll.ScrollBarThickness = 6
 Scroll.BackgroundTransparency = 1
